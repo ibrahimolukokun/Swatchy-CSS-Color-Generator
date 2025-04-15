@@ -1,50 +1,58 @@
-const hexadecimalNumberSystem = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F'];
-let button = document.getElementById('generate-btn');
+// DOM elements
+const button = document.getElementById('generate-btn');
+const colorBoxes = Array.from({ length: 5 }, (_, i) => document.getElementById(`${['first', 'second', 'third', 'fourth', 'fifth'][i]}-color-box`));
+const colorCodes = colorBoxes.map(box => box.querySelector('.color-code p'));
 
+// Color generation helper functions
+function hslToHex(h, s, l) {
+    l /= 100;
+    s /= 100;
 
-let firstColorCode = document.getElementById('first-color-code').querySelector('p');
-let secondColorCode = document.getElementById('second-color-code').querySelector('p');
-let thirdColorCode = document.getElementById('third-color-code').querySelector('p');
-let fourthColorCode = document.getElementById('fourth-color-code').querySelector('p');
-let fifthColorCode = document.getElementById('fifth-color-code').querySelector('p');
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
 
-let firstColorBox = document.getElementById('first-color-box');
-let secondColorBox = document.getElementById('second-color-box');
-let thirdColorBox = document.getElementById('third-color-box');
-let fourthColorBox = document.getElementById('fourth-color-box');
-let fifthColorBox = document.getElementById('fifth-color-box');
+    if (0 <= h && h < 60) [r, g, b] = [c, x, 0];
+    else if (60 <= h && h < 120) [r, g, b] = [x, c, 0];
+    else if (120 <= h && h < 180) [r, g, b] = [0, c, x];
+    else if (180 <= h && h < 240) [r, g, b] = [0, x, c];
+    else if (240 <= h && h < 300) [r, g, b] = [x, 0, c];
+    else if (300 <= h && h <= 360) [r, g, b] = [c, 0, x];
 
-function getRandomNumber() {
-    let randomNumber = Math.floor(Math.random() * hexadecimalNumberSystem.length);
-    return randomNumber;
+    r = Math.round((r + m) * 255);
+    g = Math.round((g + m) * 255);
+    b = Math.round((b + m) * 255);
+
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
+function generateSoftColors() {
+    // Generate colors across full spectrum but keep them soft
+    const baseHues = [
+        Math.random() * 360,  // Any hue
+        (Math.random() * 360 + 72) % 360,  // Offset by ~72 degrees
+        (Math.random() * 360 + 144) % 360, // Offset by ~144 degrees
+        (Math.random() * 360 + 216) % 360, // Offset by ~216 degrees
+        (Math.random() * 360 + 288) % 360  // Offset by ~288 degrees
+    ];
+
+    return baseHues.map(hue => {
+        // Keep saturation moderate for softer colors
+        const saturation = 45 + Math.random() * 25;
+        // Keep lightness relatively high for softness
+        const lightness = 15 + Math.random() * 20;
+        return hslToHex(hue, saturation, lightness);
+    });
+}
+
+// Event listener for color generation
 button.addEventListener('click', () => {
-    let hexCodeForFirstColor = '#';
-    let hexCodeForSecondColor = '#';
-    let hexCodeForThirdColor = '#';
-    let hexCodeForFourthColor = '#';
-    let hexCodeForFifthColor = '#';
+    const colors = generateSoftColors();
 
-    for (let i = 0; i < 6; i++) {
-        hexCodeForFirstColor += hexadecimalNumberSystem[getRandomNumber()];
-        hexCodeForSecondColor += hexadecimalNumberSystem[getRandomNumber()];
-        hexCodeForThirdColor += hexadecimalNumberSystem[getRandomNumber()];
-        hexCodeForFourthColor += hexadecimalNumberSystem[getRandomNumber()];
-        hexCodeForFifthColor += hexadecimalNumberSystem[getRandomNumber()];
-    }
-    firstColorBox.style.backgroundColor = hexCodeForFirstColor;
-    firstColorCode.textContent = hexCodeForFirstColor;
-
-    secondColorBox.style.backgroundColor = hexCodeForSecondColor;
-    secondColorCode.textContent = hexCodeForSecondColor;
-
-    thirdColorBox.style.backgroundColor = hexCodeForThirdColor;
-    thirdColorCode.textContent = hexCodeForThirdColor;
-
-    fourthColorBox.style.backgroundColor = hexCodeForFourthColor;
-    fourthColorCode.textContent = hexCodeForFourthColor;
-
-    fifthColorBox.style.backgroundColor = hexCodeForFifthColor;
-    fifthColorCode.textContent = hexCodeForFifthColor;
+    // Update UI with new colors
+    colors.forEach((color, index) => {
+        colorBoxes[index].style.backgroundColor = color;
+        colorCodes[index].textContent = color;
+    });
 });
